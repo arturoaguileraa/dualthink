@@ -63,7 +63,9 @@ export default function ProductPage({ params }) {
 
             {/* Product Info Section */}
             <div className="w-full md:w-1/2 p-6">
-              <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
+              <h2 className="text-2xl font-bold mb-2 text-gray-700">
+                {product.name}
+              </h2>
 
               <div className="flex items-center mb-4">
                 <div className="flex text-amber-500 mr-2">
@@ -78,23 +80,23 @@ export default function ProductPage({ params }) {
                 </span>
               </div>
 
-              <p className="text-2xl font-semibold mb-4">
+              <p className="text-2xl font-semibold mb-4 text-gray-700">
                 ${product.price.toFixed(2)}
               </p>
 
               <div className="mb-6">
-                <h3 className="font-medium mb-2">Description:</h3>
+                <h3 className="font-medium mb-2 text-gray-700">Description:</h3>
                 <p className="text-gray-600">{product.description}</p>
               </div>
 
               <div className="mb-6">
-                <h3 className="font-medium mb-2">Material:</h3>
+                <h3 className="font-medium mb-2 text-gray-700">Material:</h3>
                 <p className="text-gray-600">{product.material}</p>
               </div>
 
               {/* Color options */}
               <div className="mb-6">
-                <h3 className="font-medium mb-2">Colors:</h3>
+                <h3 className="font-medium mb-2 text-gray-700">Colors:</h3>
                 <div className="flex gap-2">
                   {product.colors.map((color) => (
                     <button
@@ -113,7 +115,7 @@ export default function ProductPage({ params }) {
 
               {/* Size options */}
               <div className="mb-6">
-                <h3 className="font-medium mb-2">Sizes:</h3>
+                <h3 className="font-medium mb-2 text-gray-700">Sizes:</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map((size) => (
                     <button
@@ -131,7 +133,7 @@ export default function ProductPage({ params }) {
                 <button className="bg-black text-white py-3 px-6 rounded-full hover:bg-gray-800 transition-colors flex-1">
                   Add to Cart
                 </button>
-                <button className="border border-black py-3 px-6 rounded-full hover:bg-gray-100 transition-colors flex-1">
+                <button className="border border-black py-3 px-6 rounded-full hover:bg-gray-100 transition-colors flex-1 text-gray-700">
                   Add to Wishlist
                 </button>
               </div>
@@ -190,7 +192,9 @@ export default function ProductPage({ params }) {
 
           {/* Related products */}
           <div className="p-6 border-t">
-            <h3 className="text-xl font-semibold mb-4">You may also like</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-600">
+              You may also like
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {products
                 .filter((p) => p.id !== product.id)
@@ -202,7 +206,7 @@ export default function ProductPage({ params }) {
                     className="group"
                   >
                     <div className="bg-gray-100 aspect-square rounded-lg mb-2"></div>
-                    <h4 className="font-medium group-hover:text-blue-600 truncate">
+                    <h4 className="font-medium group-hover:text-blue-600 truncate text-gray-600">
                       {relatedProduct.name}
                     </h4>
                     <p className="text-gray-600">
@@ -215,9 +219,9 @@ export default function ProductPage({ params }) {
         </div>
       </main>
 
-      <footer className="mt-16 py-8 bg-gray-100">
+      <footer className="mt-16 py-8 bg-gray-100 rounded-lg">
         <div className="container mx-auto text-center text-gray-600 text-sm">
-          <p>© 2023 DualThink Clothing. All rights reserved.</p>
+          <p>© 2025 DualThink Clothing. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
             <Link href="/about" className="hover:underline">
               About
