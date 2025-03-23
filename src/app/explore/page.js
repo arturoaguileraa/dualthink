@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { FaHeart, FaPaperPlane } from 'react-icons/fa';
 import { DESCRIPTIONS } from '@/data/descriptions';
-
+import ShareModal from '@/components/ShareModal';
 
 
 export default function ExplorePage() {
@@ -11,6 +11,7 @@ export default function ExplorePage() {
     const [likes, setLikes] = useState({});
     const [likeCounts, setLikeCounts] = useState({});
     const [descriptions, setDescriptions] = useState({});
+    const [shareVideo, setShareVideo] = useState(null);
     const loaderRef = useRef(null);
     const apiKey = 'y60bvwgVJxUkNNUUr3LD9hxQXR7s6VOjLyFPdhBQ5N3xaykfIqaQqbWt';
 
@@ -75,7 +76,7 @@ export default function ExplorePage() {
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory no-scrollbar">
             {videos.map((video, index) => (
                 <div
-                    key={video.id}
+                    key={`${video.id}-${index}`}
                     className="h-[calc(100vh-60px)] w-screen snap-start relative flex items-center justify-center"
                     onDoubleClick={() => handleDoubleTap(video.id)}
                 >
@@ -88,6 +89,9 @@ export default function ExplorePage() {
                         loop
                         controls={false}
                     />
+                    {shareVideo?.id === video.id && (
+                        <ShareModal video={shareVideo} onClose={() => setShareVideo(null)} />
+                    )}
 
                     {/* ❤️ Botón Me gusta + Probador Virtual + Compartir */}
                     <div className="absolute right-4 top-2/3 transform -translate-y-1/2 flex flex-col items-center gap-3">
@@ -117,11 +121,12 @@ export default function ExplorePage() {
                         {/* Compartir */}
                         <div className="flex items-center flex-col gap-1">
                             <button
-                                onClick={() => alert('Compartir')}
+                                onClick={() => setShareVideo(video)}
                                 className="p-2 rounded-full border-2 border-white/70 bg-white/10 backdrop-blur-md text-white flex items-center justify-center"
                             >
                                 <FaPaperPlane className="text-white text-lg" />
                             </button>
+
                             <p className="text-white text-xs">Compartir</p>
                         </div>
                     </div>

@@ -1,12 +1,9 @@
-import Link from "next/link";
-import { products } from "@/data/products";
-import { notFound } from "next/navigation";
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import { products } from '@/data/products';
+import { notFound } from 'next/navigation';
 
-export async function generateStaticParams() {
-  return products.map((product) => ({
-    id: product.id.toString(),
-  }));
-}
 
 export default function ProductPage({ params }) {
   const product = products.find((p) => p.id.toString() === params.id);
@@ -15,17 +12,19 @@ export default function ProductPage({ params }) {
     notFound();
   }
 
+  const [selectedImage, setSelectedImage] = useState(product.images[0]);
+
   return (
-    <div className="min-h-screen p-4 md:p-8 font-[family-name:var(--font-geist-sans)]">
-      <header className="mb-8">
-        <div className="container mx-auto">
+    <div className="min-h-screen bg-green-50 text-gray-800">
+      <header className="py-6 mb-6">
+        <div className="container mx-auto px-4">
           <Link
             href="/"
-            className="text-blue-600 hover:underline inline-flex items-center mb-4"
+            className="text-green-700 hover:underline inline-flex items-center mb-4"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
+              className="h-5 w-5 mr-2"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -35,204 +34,127 @@ export default function ProductPage({ params }) {
                 clipRule="evenodd"
               />
             </svg>
-            Back to Products
+            Volver a productos
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold">DualThink Clothing</h1>
+          <h1 className="text-3xl font-bold text-green-800">El Corte Inglés - Moda</h1>
         </div>
       </header>
 
-      <main className="container mx-auto">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="flex flex-col md:flex-row">
-            {/* Product Images Section */}
-            <div className="w-full md:w-1/2">
-              <div className="relative aspect-square bg-gray-100 flex items-center justify-center">
-                <div className="text-gray-400">Product Image Placeholder</div>
-              </div>
+      <main className="container mx-auto px-4">
+        <div className="bg-white rounded-xl shadow p-6 md:flex gap-6">
+          {/* Galería de imágenes */}
+          <div className="w-full md:w-1/2">
+            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
+              <img
+                src={selectedImage}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-              {/* Thumbnail images */}
-              <div className="p-4 flex gap-2 overflow-x-auto">
-                {product.images.map((_, index) => (
+            <div className="flex gap-2 overflow-x-auto">
+              {product.images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedImage(img)}
+                  className={`w-16 h-16 rounded overflow-hidden border-2 ${selectedImage === img ? 'border-green-600' : 'border-transparent'}`}
+                >
+                  <img
+                    src={img}
+                    alt={`Miniatura ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Información del producto */}
+          <div className="w-full md:w-1/2 mt-6 md:mt-0">
+            <h2 className="text-2xl font-bold mb-2 text-gray-700">{product.name}</h2>
+
+            <div className="flex items-center mb-4">
+              <div className="flex text-amber-500 mr-2">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>
+                    {i < Math.floor(product.rating) ? '★' : '☆'}
+                  </span>
+                ))}
+              </div>
+              <span className="text-gray-600 text-sm">
+                {product.rating} ({product.reviewCount} valoraciones)
+              </span>
+            </div>
+
+            <p className="text-2xl font-semibold text-green-700 mb-4">
+              {product.price.toFixed(2)} €
+            </p>
+
+            <div className="mb-4">
+              <h3 className="font-medium text-gray-700 mb-1">Descripción:</h3>
+              <p className="text-gray-600 text-sm">{product.description}</p>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="font-medium text-gray-700 mb-1">Material:</h3>
+              <p className="text-gray-600 text-sm">{product.material}</p>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="font-medium text-gray-700 mb-1">Colores disponibles:</h3>
+              <div className="flex gap-2">
+                {product.colors.map((color) => (
                   <div
-                    key={index}
-                    className="w-16 h-16 flex-shrink-0 bg-gray-200 rounded cursor-pointer"
+                    key={color}
+                    className="w-6 h-6 rounded-full border border-gray-300"
+                    style={{ backgroundColor: color.includes('-') ? color.split('-')[1] : color }}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Product Info Section */}
-            <div className="w-full md:w-1/2 p-6">
-              <h2 className="text-2xl font-bold mb-2 text-gray-700">
-                {product.name}
-              </h2>
-
-              <div className="flex items-center mb-4">
-                <div className="flex text-amber-500 mr-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i}>
-                      {i < Math.floor(product.rating) ? "★" : "☆"}
-                    </span>
-                  ))}
-                </div>
-                <span className="text-gray-600">
-                  {product.rating} ({product.reviewCount} reviews)
-                </span>
-              </div>
-
-              <p className="text-2xl font-semibold mb-4 text-gray-700">
-                ${product.price.toFixed(2)}
-              </p>
-
-              <div className="mb-6">
-                <h3 className="font-medium mb-2 text-gray-700">Description:</h3>
-                <p className="text-gray-600">{product.description}</p>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="font-medium mb-2 text-gray-700">Material:</h3>
-                <p className="text-gray-600">{product.material}</p>
-              </div>
-
-              {/* Color options */}
-              <div className="mb-6">
-                <h3 className="font-medium mb-2 text-gray-700">Colors:</h3>
-                <div className="flex gap-2">
-                  {product.colors.map((color) => (
-                    <button
-                      key={color}
-                      className="w-8 h-8 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      style={{
-                        backgroundColor: color.includes("-")
-                          ? color.split("-")[1]
-                          : color,
-                      }}
-                      aria-label={color}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Size options */}
-              <div className="mb-6">
-                <h3 className="font-medium mb-2 text-gray-700">Sizes:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      className="px-3 py-1 border border-gray-300 rounded hover:border-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Add to Cart button */}
-              <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <button className="bg-black text-white py-3 px-6 rounded-full hover:bg-gray-800 transition-colors flex-1">
-                  Add to Cart
-                </button>
-                <button className="border border-black py-3 px-6 rounded-full hover:bg-gray-100 transition-colors flex-1 text-gray-700">
-                  Add to Wishlist
-                </button>
-              </div>
-
-              {/* AI features */}
-              <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-medium text-blue-800 mb-2">AI Features</h3>
-                <div className="flex flex-col gap-2">
-                  <button className="text-left flex items-center text-blue-700 hover:text-blue-900">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 mr-2"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    See how it looks on you
+            <div className="mb-4">
+              <h3 className="font-medium text-gray-700 mb-1">Tallas:</h3>
+              <div className="flex gap-2 flex-wrap">
+                {product.sizes.map((size) => (
+                  <button
+                    key={size}
+                    className="px-3 py-1 border border-gray-300 rounded hover:border-green-600"
+                  >
+                    {size}
                   </button>
-                  <button className="text-left flex items-center text-blue-700 hover:text-blue-900">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 mr-2"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Get sizing recommendations
-                  </button>
-                  <button className="text-left flex items-center text-blue-700 hover:text-blue-900">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 mr-2"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
-                      <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
-                    </svg>
-                    Discover outfit combinations
-                  </button>
-                </div>
+                ))}
               </div>
             </div>
-          </div>
 
-          {/* Related products */}
-          <div className="p-6 border-t">
-            <h3 className="text-xl font-semibold mb-4 text-gray-600">
-              You may also like
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {products
-                .filter((p) => p.id !== product.id)
-                .slice(0, 4)
-                .map((relatedProduct) => (
-                  <Link
-                    href={`/products/${relatedProduct.id}`}
-                    key={relatedProduct.id}
-                    className="group"
-                  >
-                    <div className="bg-gray-100 aspect-square rounded-lg mb-2"></div>
-                    <h4 className="font-medium group-hover:text-blue-600 truncate text-gray-600">
-                      {relatedProduct.name}
-                    </h4>
-                    <p className="text-gray-600">
-                      ${relatedProduct.price.toFixed(2)}
-                    </p>
-                  </Link>
-                ))}
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <button className="bg-green-700 text-white py-3 px-6 rounded-full hover:bg-green-800 transition-colors flex-1">
+                Añadir a la cesta
+              </button>
+              <button className="border border-green-700 text-green-700 py-3 px-6 rounded-full hover:bg-green-50 transition-colors flex-1">
+                Añadir a favoritos
+              </button>
+            </div>
+
+            {/* Opciones IA */}
+            <div className="mt-8 p-4 bg-green-100 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">Probador Virtual y Recomendaciones</h3>
+              <div className="flex flex-col gap-2 text-sm text-green-700">
+                <button className="text-left hover:underline">👗 Ver cómo me queda</button>
+                <button className="text-left hover:underline">📏 Recomendación de talla</button>
+                <button className="text-left hover:underline">🎨 Combinar con otros productos</button>
+              </div>
             </div>
           </div>
         </div>
       </main>
 
-      <footer className="mt-16 py-8 bg-gray-100 rounded-lg">
-        <div className="container mx-auto text-center text-gray-600 text-sm">
-          <p>© 2025 DualThink Clothing. All rights reserved.</p>
-          <div className="flex justify-center gap-6 mt-4">
-            <Link href="/about" className="hover:underline">
-              About
-            </Link>
-            <Link href="/contact" className="hover:underline">
-              Contact
-            </Link>
-            <Link href="/privacy" className="hover:underline">
-              Privacy Policy
-            </Link>
-          </div>
+      <footer className="mt-16 py-8 bg-white border-t text-sm text-center text-gray-500">
+        <p>© 2025 El Corte Inglés. Todos los derechos reservados.</p>
+        <div className="flex justify-center gap-4 mt-2">
+          <Link href="/about" className="hover:underline">Sobre nosotros</Link>
+          <Link href="/contact" className="hover:underline">Contacto</Link>
+          <Link href="/privacy" className="hover:underline">Privacidad</Link>
         </div>
       </footer>
     </div>
