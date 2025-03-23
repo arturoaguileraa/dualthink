@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation';
 const navItems = [
   { href: '/', label: 'Inicio', icon: HomeIcon },
   { href: '/explore', label: 'Explorar', icon: SearchIcon },
-  { href: '/en-tienda', label: 'En tienda', icon: StoreIcon },
+  { href: '/store', label: 'En tienda', icon: StoreIcon },
   { href: '/ai-stylist', label: 'AI Dress', icon: AiIcon },
   { href: '/cesta', label: 'Cesta', icon: BagIcon },
-  { href: '/cuenta', label: 'Cuenta', icon: UserIcon },
+  { href: '/profile', label: 'Cuenta', icon: UserIcon },
 ];
 
 export default function Navbar() {
