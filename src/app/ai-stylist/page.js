@@ -1,152 +1,343 @@
+"use client";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { products } from "@/data/products";
 
 export default function AIStylistPage() {
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [userImage, setUserImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [resultImage, setResultImage] = useState(null);
+  const [resultText, setResultText] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [productImageBase64, setProductImageBase64] = useState(null);
+  const [streamRef, setStreamRef] = useState(null);
+
+  // Limpiar el stream de la cámara cuando el componente se desmonta
+  useEffect(() => {
+    return () => {
+      if (streamRef) {
+        streamRef.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [streamRef]);
+
+  const handleProductSelect = async (product) => {
+    setSelectedProduct(product);
+    // Cargar la imagen del producto y convertirla a base64
+    try {
+      const response = await fetch(product.images[0]);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result.split(",")[1];
+        setProductImageBase64(base64);
+      };
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      console.error("Error al cargar la imagen del producto:", error);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      processUserImage(file);
+    }
+  };
+
+  const processUserImage = (file) => {
+    setUserImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      // Crear una imagen para obtener dimensiones y aplicar restricciones
+      const img = new Image();
+      img.onload = () => {
+        // Creo un canvas para redimensionar si es necesario
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Definir el ancho máximo (límite de ancho pero no de alto)
+        const maxWidth = 800;
+        let width = img.width;
+        let height = img.height;
+
+        // Solo redimensionar si el ancho es mayor que el máximo
+        if (width > maxWidth) {
+          // Mantener la proporción
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        // Configurar dimensiones del canvas
+        canvas.width = width;
+        canvas.height = height;
+
+        // Dibujar la imagen en el canvas (redimensionada si era necesario)
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Obtener la imagen como data URL
+        const resizedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        setImagePreview(resizedDataUrl);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
+
+      setStreamRef(stream);
+      setIsCameraOpen(true);
+
+      // Una vez que se muestra el componente de la cámara, configuramos el vídeo
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (err) {
+      console.error("Error al acceder a la cámara:", err);
+      setError(
+        "No se pudo acceder a la cámara. Por favor, revisa los permisos."
+      );
+    }
+  };
+
+  const takePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas) return;
+
+    // Configurar el canvas con las dimensiones del video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Dibujar el frame actual del video en el canvas
+    const context = canvas.getContext("2d");
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Convertir a data URL (base64)
+    const photoDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+    // Detener la cámara
+    if (streamRef) {
+      streamRef.getTracks().forEach((track) => track.stop());
+    }
+
+    // Crear un archivo a partir del data URL para mantener consistencia con el flujo existente
+    fetch(photoDataUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const file = new File([blob], "camera-photo.jpg", {
+          type: "image/jpeg",
+        });
+        processUserImage(file);
+        setIsCameraOpen(false);
+        setStreamRef(null);
+      });
+  };
+
+  const closeCamera = () => {
+    if (streamRef) {
+      streamRef.getTracks().forEach((track) => track.stop());
+    }
+    setIsCameraOpen(false);
+    setStreamRef(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedProduct || !userImage) {
+      setError("Por favor selecciona un producto y sube una foto");
+      return;
+    }
+
+    if (!productImageBase64) {
+      setError(
+        "No se pudo cargar la imagen del producto. Intenta seleccionarlo nuevamente."
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setResultImage(null);
+    setResultText(null);
+
+    try {
+      // Convert image to base64
+      const base64Image = imagePreview.split(",")[1];
+
+      const response = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userImage: base64Image,
+          productId: selectedProduct.id,
+          productName: selectedProduct.name,
+          productImage: productImageBase64,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al generar la imagen");
+      }
+
+      const data = await response.json();
+      setResultImage(data.imageUrl);
+      if (data.responseText) {
+        setResultText(data.responseText);
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error:", error);
+      setError(
+        "Hubo un error al generar la imagen. Por favor intenta de nuevo."
+      );
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveImage = () => {
+    if (!resultImage) return;
+
+    // Crear un enlace temporal para descargar la imagen
+    const link = document.createElement("a");
+    link.href = resultImage;
+    link.download = `ai-stylist-${selectedProduct.name
+      .replace(/\s+/g, "-")
+      .toLowerCase()}-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="min-h-screen p-4 md:p-8 font-[family-name:var(--font-geist-sans)]">
-      <header className="mb-8">
-        <div className="container mx-auto">
+    <div className="bg-green-50 text-gray-800 min-h-screen flex flex-col">
+      <header className="py-6">
+        <div className="container mx-auto px-4">
           <Link
             href="/"
-            className="text-blue-600 hover:underline inline-flex items-center mb-4"
+            className="text-green-700 hover:underline inline-flex items-center mb-4"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
+              className="h-5 w-5 mr-2"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
               <path
                 fillRule="evenodd"
-                d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
                 clipRule="evenodd"
               />
             </svg>
-            Back to Home
+            Volver a Inicio
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold">AI Style Assistant</h1>
-          <p className="text-gray-600 mt-2">
-            Let our AI help you find your perfect style
+          <h1 className="text-3xl font-bold text-green-800">AI Dress</h1>
+          <p className="text-gray-600">
+            Prueba nuestros productos virtualmente con IA
           </p>
         </div>
       </header>
 
-      <main className="container mx-auto">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="flex flex-col md:flex-row">
-            {/* AI Feature Section */}
-            <div className="w-full md:w-2/3 p-6">
-              <h2 className="text-2xl font-semibold mb-4">
-                Discover Your Style
+      <main className="container mx-auto px-4 pb-12 flex-grow">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <div className="bg-white p-6 rounded-xl shadow mb-6">
+              <h2 className="text-xl font-semibold mb-4">
+                1. Selecciona un producto
               </h2>
-
-              <div className="bg-blue-50 p-4 rounded-lg mb-6">
-                <p className="text-blue-800">
-                  Our AI analyzes thousands of fashion trends, body types, and
-                  personal preferences to provide you with personalized style
-                  recommendations.
-                </p>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="font-medium mb-2">Tell us about yourself:</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Style Preference
-                    </label>
-                    <select className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                      <option>Casual</option>
-                      <option>Formal</option>
-                      <option>Streetwear</option>
-                      <option>Minimalist</option>
-                      <option>Vintage</option>
-                      <option>Athletic</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Occasion
-                    </label>
-                    <select className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                      <option>Everyday</option>
-                      <option>Work</option>
-                      <option>Date Night</option>
-                      <option>Party</option>
-                      <option>Outdoor Activity</option>
-                      <option>Special Event</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Favorite Colors
-                    </label>
-                    <select className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                      <option>Neutrals (Black, White, Gray)</option>
-                      <option>Earth Tones</option>
-                      <option>Bold & Bright</option>
-                      <option>Pastels</option>
-                      <option>Monochrome</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Budget Range
-                    </label>
-                    <select className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                      <option>Budget-Friendly</option>
-                      <option>Mid-Range</option>
-                      <option>Premium</option>
-                      <option>Luxury</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="font-medium mb-2">Upload a photo (optional):</h3>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    className={`border rounded-lg p-2 cursor-pointer transition-all ${
+                      selectedProduct?.id === product.id
+                        ? "border-green-500 ring-2 ring-green-500"
+                        : "border-gray-200 hover:border-green-300"
+                    }`}
+                    onClick={() => handleProductSelect(product)}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="mt-1 text-sm text-gray-600">
-                    Drag and drop an image, or click to select
-                  </p>
-                  <button className="mt-4 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Select Image
-                  </button>
-                </div>
+                    <div className="aspect-square bg-gray-100 rounded-md overflow-hidden mb-2">
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-sm font-medium truncate">
+                      {product.name}
+                    </p>
+                    <p className="text-sm text-green-700">{product.price}€</p>
+                  </div>
+                ))}
               </div>
-
-              <button className="bg-black text-white py-3 px-6 rounded-full hover:bg-gray-800 transition-colors w-full md:w-auto">
-                Get Personalized Recommendations
-              </button>
             </div>
 
-            {/* AI Features Sidebar */}
-            <div className="w-full md:w-1/3 bg-gray-50 p-6">
-              <h3 className="text-xl font-semibold mb-4">AI Style Features</h3>
+            <div className="bg-white p-6 rounded-xl shadow">
+              <h2 className="text-xl font-semibold mb-4">2. Sube tu foto</h2>
 
-              <div className="space-y-4">
-                <div className="p-3 bg-white rounded-lg shadow-sm">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-blue-100 p-2 rounded-full">
+              {isCameraOpen ? (
+                <div className="flex flex-col items-center">
+                  <div className="w-full max-w-xs mb-4 relative">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full rounded-lg"
+                    />
+                    <canvas ref={canvasRef} style={{ display: "none" }} />
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      onClick={closeCamera}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      onClick={takePhoto}
+                    >
+                      Tomar foto
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  {imagePreview ? (
+                    <div className="w-full max-w-xs mb-4">
+                      <div className="bg-gray-100 rounded-lg overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="Vista previa"
+                          className="w-full object-contain max-h-96"
+                          style={{ objectFit: "contain" }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-full max-w-xs aspect-square bg-gray-100 rounded-lg flex flex-col items-center justify-center mb-4 cursor-pointer border-2 border-dashed border-gray-300 hover:border-green-500"
+                      onClick={() => fileInputRef.current.click()}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-blue-600"
+                        className="h-12 w-12 text-gray-400 mb-2"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -155,26 +346,29 @@ export default function AIStylistPage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                         />
                       </svg>
+                      <p className="text-sm text-gray-500">
+                        Haz clic para subir tu foto
+                      </p>
                     </div>
-                    <h4 className="ml-3 text-lg font-medium">
-                      Virtual Outfit Creator
-                    </h4>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Mix and match items to create the perfect outfit with our
-                    AI-powered style recommendation system.
-                  </p>
-                </div>
-
-                <div className="p-3 bg-white rounded-lg shadow-sm">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-purple-100 p-2 rounded-full">
+                  )}
+                  <div className="flex gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                    />
+                    <button
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                      onClick={() => fileInputRef.current.click()}
+                    >
                       <svg
+                        className="h-5 w-5 mr-2"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-purple-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -183,24 +377,18 @@ export default function AIStylistPage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l-4-4m4 4H4"
                         />
                       </svg>
-                    </div>
-                    <h4 className="ml-3 text-lg font-medium">Style Analysis</h4>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Our AI analyzes your preferences, past purchases, and
-                    current trends to understand your unique style.
-                  </p>
-                </div>
-
-                <div className="p-3 bg-white rounded-lg shadow-sm">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-green-100 p-2 rounded-full">
+                      {imagePreview ? "Cambiar foto" : "Subir foto"}
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                      onClick={openCamera}
+                    >
                       <svg
+                        className="h-5 w-5 mr-2"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-green-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -209,24 +397,64 @@ export default function AIStylistPage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                    </div>
-                    <h4 className="ml-3 text-lg font-medium">Size Finder</h4>
+                      Usar cámara
+                    </button>
                   </div>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Get accurate size recommendations for each garment based on
-                    your measurements and fit preferences.
-                  </p>
                 </div>
+              )}
+            </div>
 
-                <div className="p-3 bg-white rounded-lg shadow-sm">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-amber-100 p-2 rounded-full">
+            <div className="mt-6">
+              <button
+                className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                  !selectedProduct || !userImage
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-green-600 text-white hover:bg-green-700"
+                }`}
+                onClick={handleSubmit}
+                disabled={!selectedProduct || !userImage || isLoading}
+              >
+                {isLoading ? "Generando imagen..." : "Probar producto"}
+              </button>
+              {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
+            </div>
+          </div>
+
+          <div>
+            <div className="bg-white p-6 rounded-xl shadow h-full">
+              <h2 className="text-xl font-semibold mb-4">3. Resultado</h2>
+              {resultImage ? (
+                <div className="w-full">
+                  <div className="bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={resultImage}
+                      alt="Resultado virtual"
+                      className="w-full object-contain max-h-[70vh]"
+                      style={{ objectFit: "contain" }}
+                    />
+                  </div>
+                  {resultText && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
+                      <p>{resultText}</p>
+                    </div>
+                  )}
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                      onClick={handleSaveImage}
+                    >
                       <svg
+                        className="h-5 w-5 mr-2"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-amber-600"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -235,41 +463,76 @@ export default function AIStylistPage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                         />
                       </svg>
-                    </div>
-                    <h4 className="ml-3 text-lg font-medium">
-                      Gift Recommender
-                    </h4>
+                      Guardar imagen
+                    </button>
                   </div>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Perfect for finding gifts! Describe the recipient and
-                    we&apos;ll suggest ideal fashion gifts for them.
-                  </p>
                 </div>
-              </div>
+              ) : (
+                <div className="w-full h-[calc(100%-2rem)] flex flex-col items-center justify-center text-center">
+                  {isLoading ? (
+                    <div className="animate-pulse">
+                      <svg
+                        className="w-12 h-12 text-green-500 mx-auto mb-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <p className="text-gray-600">
+                        Generando tu imagen con IA...
+                      </p>
+                      <p className="text-gray-500 text-sm mt-2">
+                        Esto puede tardar unos segundos
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-16 w-16 text-gray-300 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <p className="text-gray-700">
+                        Selecciona un producto y sube tu foto para ver cómo te
+                        queda
+                      </p>
+                      <p className="text-gray-500 text-xs mt-2">
+                        Nuestra IA generará una imagen tuya con el producto
+                        seleccionado
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
-
-      <footer className="mt-16 py-8 bg-gray-100">
-        <div className="container mx-auto text-center text-gray-600 text-sm">
-          <p>© 2023 DualThink Clothing. All rights reserved.</p>
-          <div className="flex justify-center gap-6 mt-4">
-            <Link href="/about" className="hover:underline">
-              About
-            </Link>
-            <Link href="/contact" className="hover:underline">
-              Contact
-            </Link>
-            <Link href="/privacy" className="hover:underline">
-              Privacy Policy
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
