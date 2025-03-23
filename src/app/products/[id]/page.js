@@ -1,9 +1,8 @@
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
-import { products } from '@/data/products';
-import { notFound } from 'next/navigation';
-
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { products } from "@/data/products";
+import { notFound } from "next/navigation";
 
 export default function ProductPage({ params }) {
   const product = products.find((p) => p.id.toString() === params.id);
@@ -36,7 +35,9 @@ export default function ProductPage({ params }) {
             </svg>
             Volver a productos
           </Link>
-          <h1 className="text-3xl font-bold text-green-800">El Corte Inglés - Moda</h1>
+          <h1 className="text-3xl font-bold text-green-800">
+            El Corte Inglés - Moda
+          </h1>
         </div>
       </header>
 
@@ -57,7 +58,11 @@ export default function ProductPage({ params }) {
                 <button
                   key={i}
                   onClick={() => setSelectedImage(img)}
-                  className={`w-16 h-16 rounded overflow-hidden border-2 ${selectedImage === img ? 'border-green-600' : 'border-transparent'}`}
+                  className={`w-16 h-16 rounded overflow-hidden border-2 ${
+                    selectedImage === img
+                      ? "border-green-600"
+                      : "border-transparent"
+                  }`}
                 >
                   <img
                     src={img}
@@ -71,13 +76,15 @@ export default function ProductPage({ params }) {
 
           {/* Información del producto */}
           <div className="w-full md:w-1/2 mt-6 md:mt-0">
-            <h2 className="text-2xl font-bold mb-2 text-gray-700">{product.name}</h2>
+            <h2 className="text-2xl font-bold mb-2 text-gray-700">
+              {product.name}
+            </h2>
 
             <div className="flex items-center mb-4">
               <div className="flex text-amber-500 mr-2">
                 {[...Array(5)].map((_, i) => (
                   <span key={i}>
-                    {i < Math.floor(product.rating) ? '★' : '☆'}
+                    {i < Math.floor(product.rating) ? "★" : "☆"}
                   </span>
                 ))}
               </div>
@@ -101,13 +108,19 @@ export default function ProductPage({ params }) {
             </div>
 
             <div className="mb-4">
-              <h3 className="font-medium text-gray-700 mb-1">Colores disponibles:</h3>
+              <h3 className="font-medium text-gray-700 mb-1">
+                Colores disponibles:
+              </h3>
               <div className="flex gap-2">
                 {product.colors.map((color) => (
                   <div
                     key={color}
                     className="w-6 h-6 rounded-full border border-gray-300"
-                    style={{ backgroundColor: color.includes('-') ? color.split('-')[1] : color }}
+                    style={{
+                      backgroundColor: color.includes("-")
+                        ? color.split("-")[1]
+                        : color,
+                    }}
                   />
                 ))}
               </div>
@@ -138,11 +151,25 @@ export default function ProductPage({ params }) {
 
             {/* Opciones IA */}
             <div className="mt-8 p-4 bg-green-100 rounded-lg">
-              <h3 className="font-semibold text-green-800 mb-2">Probador Virtual y Recomendaciones</h3>
+              <h3 className="font-semibold text-green-800 mb-2">
+                Probador Virtual y Recomendaciones
+              </h3>
               <div className="flex flex-col gap-2 text-sm text-green-700">
-                <button className="text-left hover:underline">👗 Ver cómo me queda</button>
-                <button className="text-left hover:underline">📏 Recomendación de talla</button>
-                <button className="text-left hover:underline">🎨 Combinar con otros productos</button>
+                <button className="text-left hover:underline">
+                  👗 Ver cómo me queda
+                </button>
+                <button className="text-left hover:underline">
+                  📏 Recomendación de talla
+                </button>
+                <button className="text-left hover:underline">
+                  🎨 Combinar con otros productos
+                </button>
+                <button
+                  className="text-left hover:underline"
+                  onClick={() => (window.location.href = "/ai-stylist")}
+                >
+                  Ir al Estilista Virtual
+                </button>
               </div>
             </div>
           </div>
@@ -152,9 +179,15 @@ export default function ProductPage({ params }) {
       <footer className="mt-16 py-8 bg-white border-t text-sm text-center text-gray-500">
         <p>© 2025 El Corte Inglés. Todos los derechos reservados.</p>
         <div className="flex justify-center gap-4 mt-2">
-          <Link href="/about" className="hover:underline">Sobre nosotros</Link>
-          <Link href="/contact" className="hover:underline">Contacto</Link>
-          <Link href="/privacy" className="hover:underline">Privacidad</Link>
+          <Link href="/about" className="hover:underline">
+            Sobre nosotros
+          </Link>
+          <Link href="/contact" className="hover:underline">
+            Contacto
+          </Link>
+          <Link href="/privacy" className="hover:underline">
+            Privacidad
+          </Link>
         </div>
       </footer>
     </div>

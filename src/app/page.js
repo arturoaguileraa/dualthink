@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { products } from '@/data/products';
+import Link from "next/link";
+import { products } from "@/data/products";
 
 export default function Home() {
   return (
@@ -69,18 +69,17 @@ export default function Home() {
         <section className="mb-16">
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-10">
             <h2 className="text-xl font-semibold text-green-800 mb-4">
-              Asesoramiento con IA
+              AI Dress
             </h2>
             <p className="text-gray-600 text-sm mb-6">
-              Nuestro estilista virtual analiza tus preferencias, tipo de cuerpo
-              y ocasión para recomendarte las prendas ideales. ¡Descubre una nueva
-              forma de comprar con tecnología!
+              Prueba nuestro avanzado sistema de IA que te permite probarte
+              prendas de ropa para ver como te queda antes de comprarla.
             </p>
             <Link
               href="/ai-stylist"
               className="inline-block bg-green-700 text-white px-6 py-2 rounded-full text-sm hover:bg-green-800 transition"
             >
-              Probar estilista virtual
+              Probar AI Dress
             </Link>
           </div>
         </section>
@@ -90,9 +89,15 @@ export default function Home() {
         <div className="container mx-auto px-4 text-center text-sm text-gray-500">
           <p>© 2025 El Corte Inglés. Todos los derechos reservados.</p>
           <div className="flex justify-center gap-6 mt-4">
-            <Link href="/about" className="hover:underline">Sobre nosotros</Link>
-            <Link href="/contact" className="hover:underline">Contacto</Link>
-            <Link href="/privacy" className="hover:underline">Política de privacidad</Link>
+            <Link href="/about" className="hover:underline">
+              Sobre nosotros
+            </Link>
+            <Link href="/contact" className="hover:underline">
+              Contacto
+            </Link>
+            <Link href="/privacy" className="hover:underline">
+              Política de privacidad
+            </Link>
           </div>
         </div>
       </footer>
