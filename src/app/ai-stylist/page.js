@@ -17,6 +17,7 @@ export default function AIStylistPage() {
   const canvasRef = useRef(null);
   const [productImageBase64, setProductImageBase64] = useState(null);
   const [streamRef, setStreamRef] = useState(null);
+  const [usingDefaultModel, setUsingDefaultModel] = useState(true);
 
   // Limpiar el stream de la cámara cuando el componente se desmonta
   useEffect(() => {
@@ -26,6 +27,27 @@ export default function AIStylistPage() {
       }
     };
   }, [streamRef]);
+
+  // Cargar la imagen del modelo por defecto
+  useEffect(() => {
+    if (usingDefaultModel && !userImage) {
+      loadDefaultModelImage();
+    }
+  }, [usingDefaultModel, userImage]);
+
+  const loadDefaultModelImage = async () => {
+    try {
+      // Cargar la imagen del modelo por defecto desde public
+      const response = await fetch("/images/default-model.jpg");
+      const blob = await response.blob();
+      const file = new File([blob], "default-model.jpg", {
+        type: "image/jpeg",
+      });
+      processUserImage(file);
+    } catch (error) {
+      console.error("Error al cargar la imagen del modelo por defecto:", error);
+    }
+  };
 
   const handleProductSelect = async (product) => {
     setSelectedProduct(product);
@@ -47,6 +69,7 @@ export default function AIStylistPage() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setUsingDefaultModel(false);
       processUserImage(file);
     }
   };
@@ -92,6 +115,7 @@ export default function AIStylistPage() {
 
   const openCamera = async () => {
     try {
+      setUsingDefaultModel(false);
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
       });
@@ -142,6 +166,7 @@ export default function AIStylistPage() {
         const file = new File([blob], "camera-photo.jpg", {
           type: "image/jpeg",
         });
+        setUsingDefaultModel(false);
         processUserImage(file);
         setIsCameraOpen(false);
         setStreamRef(null);
@@ -157,7 +182,7 @@ export default function AIStylistPage() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedProduct || !userImage) {
+    if (!selectedProduct || !imagePreview) {
       setError("Por favor selecciona un producto y sube una foto");
       return;
     }
@@ -329,6 +354,13 @@ export default function AIStylistPage() {
                           style={{ objectFit: "contain" }}
                         />
                       </div>
+                      {usingDefaultModel && (
+                        <div className="mt-2 text-center">
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                            Modelo por defecto
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div
@@ -408,6 +440,31 @@ export default function AIStylistPage() {
                       </svg>
                       Usar cámara
                     </button>
+                    {/*!usingDefaultModel && (
+                      <button
+                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+                        onClick={() => {
+                          setUsingDefaultModel(true);
+                          loadDefaultModelImage();
+                        }}
+                      >
+                        <svg
+                          className="h-5 w-5 mr-2"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Modelo por defecto
+                      </button>
+                    )*/}
                   </div>
                 </div>
               )}
@@ -416,12 +473,12 @@ export default function AIStylistPage() {
             <div className="mt-6">
               <button
                 className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                  !selectedProduct || !userImage
+                  !selectedProduct || !imagePreview
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-green-600 text-white hover:bg-green-700"
                 }`}
                 onClick={handleSubmit}
-                disabled={!selectedProduct || !userImage || isLoading}
+                disabled={!selectedProduct || !imagePreview || isLoading}
               >
                 {isLoading ? "Generando imagen..." : "Probar producto"}
               </button>

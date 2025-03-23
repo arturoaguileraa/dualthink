@@ -9,7 +9,7 @@ export default function Home() {
       <header className="py-8 bg-white shadow-sm mb-8">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-green-800 tracking-tight">
-            Bienvenido a El Corte Inglés
+            El Corte Inglés
           </h1>
           <p className="mt-2 text-gray-600 text-sm">
             Descubre nuestras colecciones exclusivas y servicios personalizados
@@ -18,6 +18,24 @@ export default function Home() {
       </header>
 
       <main className="container mx-auto px-4">
+        {/* Estilista virtual con IA */}
+        <section className="mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-6 md:p-10">
+            <h2 className="text-xl font-semibold text-green-800 mb-4">
+              AI Dress
+            </h2>
+            <p className="text-gray-600 text-sm mb-6">
+              Prueba nuestro avanzado sistema de IA que te permite probarte
+              prendas de ropa para ver como te queda antes de comprarla.
+            </p>
+            <Link
+              href="/ai-stylist"
+              className="inline-block bg-green-700 text-white px-6 py-2 rounded-full text-sm hover:bg-green-800 transition"
+            >
+              Probar AI Dress
+            </Link>
+          </div>
+        </section>
         {/* Productos destacados */}
         <section className="mb-12">
           <h2 className="text-xl font-semibold text-green-700 mb-6">
@@ -62,25 +80,6 @@ export default function Home() {
                 </div>
               </Link>
             ))}
-          </div>
-        </section>
-
-        {/* Estilista virtual con IA */}
-        <section className="mb-16">
-          <div className="bg-white rounded-xl shadow-sm p-6 md:p-10">
-            <h2 className="text-xl font-semibold text-green-800 mb-4">
-              AI Dress
-            </h2>
-            <p className="text-gray-600 text-sm mb-6">
-              Prueba nuestro avanzado sistema de IA que te permite probarte
-              prendas de ropa para ver como te queda antes de comprarla.
-            </p>
-            <Link
-              href="/ai-stylist"
-              className="inline-block bg-green-700 text-white px-6 py-2 rounded-full text-sm hover:bg-green-800 transition"
-            >
-              Probar AI Dress
-            </Link>
           </div>
         </section>
       </main>
