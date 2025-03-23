@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "DualThink",
+  title: "El Corte Inglés - DualThink",
   description: "Prototype for Innovation Flash Challenge",
 };
 
@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`bg-green-50 ${geistSans.variable} ${geistMono.variable} pb-14 antialiased`}
       >
         {children}
         <Navbar></Navbar>
