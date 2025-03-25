@@ -91,7 +91,14 @@ Mensaje del usuario: ${message}
                     </div>
                 )}
 
+                {products.length !== 0 && !loading && (
+                    <p className="text-center text-gray-500 mb-12">
+                        😊 Te recomiendo estos productos. ¿Te gustan? 😊
+                    </p>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+
                     {products.map((product, idx) => (
                         <div
                             key={idx}
