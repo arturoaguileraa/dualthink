@@ -529,7 +529,7 @@ export default function AIStylistPage() {
                 </div>
               ) : (
                 <div className="w-full h-[calc(100%-2rem)] flex flex-col items-center justify-center text-center">
-                  {!isLoading ? (
+                  {isLoading ? (
                     <div className="animate-pulse">
                       <svg
                         className="w-12 h-12 text-green-500 mx-auto mb-4 animate-spin"
