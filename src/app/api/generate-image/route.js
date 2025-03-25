@@ -30,7 +30,7 @@ export async function POST(request) {
       {
         text: `
         <context> 
-        I have a photo of a person and a photo of a clothing item (${productName}). I want to try the ${productName} on the person in the first image.
+        I have a photo of a person and a photo of a clothing item (in spanish is ${productName}). I want to try the ${productName} on the person in the first image.
         </context>
         <instructions>
         1. Keep everything about the person's face, body, pose and proportions intact, just add the clothing onto them, replace the correspondingclothing with the clothing item from the second image. 
@@ -79,9 +79,8 @@ export async function POST(request) {
       } else if (part.inlineData) {
         const imageData = part.inlineData.data;
         // Return the base64 data as a data URL
-        imageUrl = `data:${
-          part.inlineData.mimeType || "image/png"
-        };base64,${imageData}`;
+        imageUrl = `data:${part.inlineData.mimeType || "image/png"
+          };base64,${imageData}`;
       }
     }
 

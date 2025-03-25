@@ -37,12 +37,12 @@ export const products = [
   },
   {
     id: 3,
-    name: "Sudadera Oversize - Easy Wear",
+    name: "Sudadera de hombre (Hoodie)",
     description:
-      "Abrígate con esta sudadera oversize con bolsillo canguro y capucha ajustable. Fabricada con tejido polar suave para ofrecer calor extra en los días fríos.",
-    price: 49.99,
+      "Sudadera de hombre Oversized Nfl Patch New York Jets New Era. Abrígate con esta sudadera oversize con bolsillo canguro y capucha ajustable. Fabricada con tejido polar suave para ofrecer calor extra en los días fríos.",
+    price: 84.99,
     category: "sudaderas",
-    colors: ["beige", "negro", "verde"],
+    colors: ["verde"],
     sizes: ["S", "M", "L", "XL", "XXL"],
     images: [
       "/images/hoodie-1.jpg",
@@ -143,4 +143,24 @@ export const products = [
     rating: 4.8,
     reviewCount: 100,
   },
+  {
+    id: 9,
+    name: "Gorra Ralph Lauren",
+    description:
+      "Gorra exclusiva del torneo Australian Open, diseñada por Ralph Lauren. Combina estilo deportivo y elegancia, ideal para protegerte del sol con un toque premium.",
+    price: 29.99,
+    category: "accesorios",
+    colors: ["negro", "azul", "rojo"],
+    sizes: ["Único"],
+    images: [
+      "/images/cap-1.jpg",
+      "/images/cap-2.jpg",
+    ],
+    featured: true,
+    inStock: true,
+    material: "Algodón",
+    rating: 4.8,
+    reviewCount: 100,
+  }
+
 ];
