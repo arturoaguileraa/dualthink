@@ -7,15 +7,25 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-green-50 text-gray-800">
       <header className="py-8 bg-white shadow-sm mb-8">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-green-800 tracking-tight">
-            El Corte Inglés
-          </h1>
-          <p className="mt-2 text-gray-600 text-sm">
-            Descubre nuestras colecciones exclusivas y servicios personalizados
-          </p>
+        <div className="container mx-auto px-4 text-center md:text-left">
+          <div className="flex flex-col items-center justify-center md:flex-row md:justify-center items-center gap-4">
+            <img
+              src="https://www.elcorteingles.es/recursos/informacioncorporativa/doc/portal/2017/07/06/eci-triangulo-logo.png"
+              alt="El Corte Inglés logo"
+              className="h-12"
+            />
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-green-800 tracking-tight">
+                El Corte Inglés
+              </h1>
+              <p className="mt-1 text-gray-600 text-sm">
+                Descubre nuestras colecciones exclusivas y servicios personalizados
+              </p>
+            </div>
+          </div>
         </div>
       </header>
+
 
       <main className="container mx-auto px-4">
         {/* Estilista virtual con IA */}
