@@ -1,3 +1,7 @@
+# El Corte Inglés Virtual Try-On - Innovation Flash Challenge (UMA)
+
+This project is built with Next.js as part of the **Innovation Flash Challenge** organized by the University of Málaga (UMA). The application adds new features to the existing El Corte Inglés app, integrating an **AI-powered Virtual Try-On** system to enhance the user experience for online fashion shopping.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
